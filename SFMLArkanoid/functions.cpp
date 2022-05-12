@@ -18,25 +18,11 @@ void testCollision(Racket& racket, Ball& ball) {
 	}
 }
 
-void testCollision(Brick& brick, Ball& ball, Player& player) {
+void testCollision(Brick& brick, Ball& ball) {
 	if (!isIntersecting(brick, ball)) {
 		return;
-	} 
-	if (brick.getHealth() > 0) {
-		player.scoreIncrease();
-		brick.healthDecrease();
 	}
-	/*We delete only destructible blocks. Setting status "destroyed" to delete later*/
-	if (brick.getDestructibility() && (brick.getHealth() == 0)) {
-		brick.setStatus(true);
-	}
-	/*Speed boost*/
-	if (brick.getVelocityBoost() == 1.f) {
-		ball.setVelocity({ (ball.getVelocity().x > 0) ? ballVelocity : -ballVelocity,(ball.getVelocity().y > 0) ? ballVelocity : -ballVelocity });
-	}
-	else ball.setVelocity({ ball.getVelocity().x * brick.getVelocityBoost(), ball.getVelocity().y * brick.getVelocityBoost() });
-
-
+	brick.setStatus(true);
 
 	float overlapLeft = ball.right() - brick.left();
 	float overlapRight = brick.right() - ball.left();
@@ -50,19 +36,10 @@ void testCollision(Brick& brick, Ball& ball, Player& player) {
 	float minOverlapY = ballFromTop ? overlapTop : overlapBottom;
 
 	if (abs(minOverlapX) < abs(minOverlapY)) {
-		ball.setXVelocity(ballFromLeft ? -abs(ball.getVelocity().x) : abs(ball.getVelocity().x));
+		ball.setXVelocity(ballFromLeft ? -ballVelocity : ballVelocity);
 	}
 	else {
-		ball.setYVelocity(ballFromTop ? -abs(ball.getVelocity().y) : abs(ball.getVelocity().y));
+		ball.setYVelocity(ballFromTop ? -ballVelocity : ballVelocity);
 	}
 
-}
-
-void testCollision(Racket& racket, Bonus& bonus) {
-	if (!isIntersecting(racket, bonus)) {
-		return;
-	}
-	else {
-		bonus.setStatus(true);
-	}
 }

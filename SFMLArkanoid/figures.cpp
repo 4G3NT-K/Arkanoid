@@ -6,22 +6,19 @@ float Ball::left() { return x() - this->getRadius(); }
 float Ball::right() { return x() + this->getRadius(); }
 float Ball::top() { return y() - this->getRadius(); }
 float Ball::bottom() { return y() + this->getRadius(); }
-void Ball::update(Player& player) {
+void Ball::update() {
 	this->move(_velocity);
 	if (left() < 0) {
-		_velocity.x = abs(_velocity.x);
+		_velocity.x = ballVelocity;
 	}
 	else if (right() > windowWidth) {
-		_velocity.x = -abs(_velocity.x);
+		_velocity.x = -ballVelocity;
 	}
 	if (top() < 0) {
-		_velocity.y = abs(_velocity.y);
+		_velocity.y = ballVelocity;
 	}
 	else if (bottom() > windowHeight) {
-		if (player.getHealth() > 0) {
-			player.healthDecrease();
-		}
-		_velocity.y = -abs(_velocity.y);
+		_velocity.y = -ballVelocity;
 	}
 
 }
@@ -52,17 +49,3 @@ float Brick::left() { return x() - this->getSize().x / 2.f; }
 float Brick::right() { return x() + this->getSize().x / 2.f; }
 float Brick::top() { return y() - this->getSize().y / 2.f; }
 float Brick::bottom() { return y() + this->getSize().y / 2.f; }
-
-float Bonus::x() { return this->getPosition().x; }
-float Bonus::y() { return this->getPosition().y; }
-float Bonus::left() { return x() - this->getSize().x / 2.f; }
-float Bonus::right() { return x() + this->getSize().x / 2.f; }
-float Bonus::top() { return y() - this->getSize().y / 2.f; }
-float Bonus::bottom() { return y() + this->getSize().y / 2.f; }
-
-void Bonus::update() {
-	this->move(_velocity);
-	if (bottom() > windowHeight) {
-		this->setFailStatus(true);
-	}
-}
