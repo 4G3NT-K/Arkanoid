@@ -21,6 +21,9 @@ void Ball::update(Player& player) {
 		if (player.getHealth() > 0) {
 			player.healthDecrease();
 		}
+		if (player.getScore() > 0) {
+			player.scoreDecrease();
+		}
 		_velocity.y = -abs(_velocity.y);
 	}
 
@@ -65,4 +68,26 @@ void Bonus::update() {
 	if (bottom() > windowHeight) {
 		this->setFailStatus(true);
 	}
+}
+
+void MovingBrick::update() {
+	this->move(_velocity);
+	if (left() < 0) {
+		_velocity.x = abs(_velocity.x);
+	}
+	if (right() > windowWidth) {
+		_velocity.x = -abs(_velocity.x);
+	}
+}
+
+void Bonus::spawnMovingBrick(std::vector <MovingBrick>& movingBricks) {
+	movingBricks.emplace_back((movingBricks.size()) * windowWidth / 6, windowHeight / 4);
+	movingBricks.back().setAliveStatus(true);
+	movingBricks.back().setDestructibility(true);
+	movingBricks.back().setHealth(2);
+}
+
+void Bonus::spawnBall(std::vector<Ball>& balls) {
+	balls.emplace_back(windowWidth / 2, 3 * windowHeight / 4);
+	balls.back().setFillColor(sf::Color::Red);
 }

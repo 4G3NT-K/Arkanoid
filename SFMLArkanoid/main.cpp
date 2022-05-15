@@ -33,55 +33,59 @@ int main()
 	lossText.setString("YOU DIED");
 
 	Racket rack(windowWidth / 2, windowHeight - 50);
-	Ball bl(windowWidth / 2, 3 * windowHeight / 4);
 
-
-
+	std::vector <Ball> bl;
 	std::vector <Brick> standardBricks;
 	std::vector <Brick> velocityBoostBricks;
-	std::vector <Brick> indestructibleBlocks;
-	std::vector <Brick> strongerHealthBlocks;
+	std::vector <Brick> indestructibleBricks;
+	std::vector <Brick> strongerHealthBricks;
 	std::vector <Brick> bonusBlocks;
 	std::vector <Bonus> bonuses;
+	std::vector <MovingBrick> movingBricks;
+
+	bl.emplace_back(windowWidth / 2, 3 * windowHeight / 4);
+	/*bl.emplace_back(windowWidth / 2, windowHeight / 2);
+	bl[1].setFillColor(sf::Color::Red);*/
 	bonusBlocks.emplace_back(0.85 * windowHeight / 4, windowWidth / 4);
 	bonusBlocks.emplace_back(0.55 * windowHeight / 4, 1.3 * windowWidth / 4);
 	bonusBlocks[0].setFillColor(sf::Color::Magenta);
 	bonusBlocks[1].setFillColor(sf::Color::Magenta);
 	bonuses.emplace_back(0.85 * windowHeight / 4, windowWidth / 4);
-	bonuses.emplace_back(0.55 * windowHeight / 4, 1.3*windowWidth / 4);
+	bonuses[0].setBonusType(bonusType::MOVINGBRICK);
 
+	bonuses.emplace_back(0.55 * windowHeight / 4, 1.3 * windowWidth / 4);
+	bonuses[1].setBonusType(bonusType::ADDBALL);
 
 	/*Standard blocks generation*/
 	for (int iX = 0; iX < countStandardX; iX++) {
 		for (int iY = 0; iY < countStandardY; iY++) {
-			standardBricks.emplace_back((iX + 1) * (blockWidth + 3) + 22,
-				(iY + 2) * (blockHeight + 3));
+			standardBricks.emplace_back((iX + 1) * (blockWidth + 3) + 50,
+				(iY + 2) * (blockHeight + 25));
 		}
 	}
 	/*Velocity boost blocks*/
 	for (int iX = 0; iX < countVelocityBoostBlocks; iX++) {
-		velocityBoostBricks.emplace_back(3 * windowWidth / 4, (iX + 2) * (blockHeight + 3));
+		velocityBoostBricks.emplace_back(3 * windowWidth / 4, (iX + 2) * (blockHeight + 25));
 		velocityBoostBricks[iX].setVelocityBoost(ballVelocityBoost);
 		velocityBoostBricks[iX].setFillColor(sf::Color::Green);
 
 	}
 	/*Indestructible blocks*/
 	for (int iX = 0; iX < countIndestructibleBlocks; iX++) {
-		indestructibleBlocks.emplace_back(2 * windowWidth / 6, (iX + 2) * (blockHeight + 3));
-		indestructibleBlocks[iX].setDestructibility(false);
-		indestructibleBlocks[iX].setFillColor(sf::Color::Red);
-		indestructibleBlocks[iX].setHealth(-1);
+		indestructibleBricks.emplace_back(2 * windowWidth / 6, (iX + 2) * (blockHeight + 50));
+		indestructibleBricks[iX].setDestructibility(false);
+		indestructibleBricks[iX].setFillColor(sf::Color::Red);
+		indestructibleBricks[iX].setHealth(-1);
 	}
 	/*Stronger health blocks */
 	for (int iX = 0; iX < countIndestructibleBlocks; iX++) {
-		strongerHealthBlocks.emplace_back(3 * windowWidth / 6, (iX + 2) * (blockHeight + 3));
-		strongerHealthBlocks[iX].setFillColor(sf::Color::Cyan);
-		strongerHealthBlocks[iX].setHealth(2);
+		strongerHealthBricks.emplace_back(3 * windowWidth / 6, (iX + 2) * (blockHeight + 25));
+		strongerHealthBricks[iX].setFillColor(sf::Color::Cyan);
+		strongerHealthBricks[iX].setHealth(2);
 	}
 
 
-	while (window.isOpen())
-	{
+	while (window.isOpen()) {
 		sf::Event event;
 		while (window.pollEvent(event))
 		{
@@ -94,39 +98,53 @@ int main()
 
 		for (auto& brick : standardBricks) {
 			testCollision(brick, bl, player);
+			for (auto& movingBrick : movingBricks) {
+				testCollision(brick, movingBrick);
+			}
 		}
 
 		for (auto& brick : velocityBoostBricks) {
 			testCollision(brick, bl, player);
+			for (auto& movingBrick : movingBricks) {
+				testCollision(brick, movingBrick);
+			}
 		}
 
-		for (auto& brick : indestructibleBlocks) {
+		for (auto& brick : indestructibleBricks) {
 			testCollision(brick, bl, player);
+			for (auto& movingBrick : movingBricks) {
+				testCollision(brick, movingBrick);
+			}
 		}
 
-		for (auto& brick : strongerHealthBlocks) {
+		for (auto& brick : strongerHealthBricks) {
 			testCollision(brick, bl, player);
+			for (auto& movingBrick : movingBricks) {
+				testCollision(brick, movingBrick);
+			}
 		}
-		int i = 0;
-		for (int i = 0; i < bonusBlocks.size();i++) {
+		for (auto& movingBrick : movingBricks) {
+			testCollision(movingBrick, bl, player);
+			for (auto& innerMovingBrick : movingBricks) {
+				testCollision(movingBrick, innerMovingBrick);
+			}
+		}
+
+		for (int i = 0; i < bonusBlocks.size(); i++) {
 			testCollision(bonusBlocks[i], bl, player);
 			if (bonusBlocks[i].getStatus()) {
 				bonusBlocks[i].setFillColor(sf::Color::Black);
 				bonusBlocks[i].setPosition({ -100,-100 });
 				bonuses[i].setMovingStatus(true);
 			}
-			/*for (auto& bonus : bonuses) {
-				if (brick.getStatus()) {
-					bonus.setMovingStatus(true);
-				}
-			}*/
 
 		}
 
 		standardBricks.erase(remove_if(begin(standardBricks), end(standardBricks), [](Brick& brick) {return brick.getStatus(); }), end(standardBricks));
 		velocityBoostBricks.erase(remove_if(begin(velocityBoostBricks), end(velocityBoostBricks), [](Brick& brick) {return brick.getStatus(); }), end(velocityBoostBricks));
-		indestructibleBlocks.erase(remove_if(begin(indestructibleBlocks), end(indestructibleBlocks), [](Brick& brick) {return brick.getStatus(); }), end(indestructibleBlocks));
-		strongerHealthBlocks.erase(remove_if(begin(strongerHealthBlocks), end(strongerHealthBlocks), [](Brick& brick) {return brick.getStatus(); }), end(strongerHealthBlocks));
+		indestructibleBricks.erase(remove_if(begin(indestructibleBricks), end(indestructibleBricks), [](Brick& brick) {return brick.getStatus(); }), end(indestructibleBricks));
+		strongerHealthBricks.erase(remove_if(begin(strongerHealthBricks), end(strongerHealthBricks), [](Brick& brick) {return brick.getStatus(); }), end(strongerHealthBricks));
+		movingBricks.erase(remove_if(begin(movingBricks), end(movingBricks), [](Brick& brick) {return brick.getStatus(); }), end(movingBricks));
 		std::ostringstream scorestream;
 		std::ostringstream healthtream;
 		healthtream << player.getHealth();
@@ -134,15 +152,23 @@ int main()
 		std::string scoretext = "Score: " + scorestream.str();
 		scoreText.setString(scoretext);
 		healthText.setString("Health: " + healthtream.str());
-		
+
 		rack.update();
-		bl.update(player);
+		for (auto& ball : bl) {
+			ball.update(player);
+		}
 		testCollision(rack, bl);
-		testCollision(rack, bonuses[0]);
+		if (bl[1].getFillColor() == sf::Color::Red) {
+			testCollision(bl[0], bl[1]);
+		}
+		for (auto& bonus : bonuses) {
+			testCollision(rack, bonus);
+		}
 		window.clear();
-		window.draw(bl);
+		for (auto& ball : bl) {
+			window.draw(ball);
+		}
 		window.draw(rack);
-		//window.draw(bonuses[0]);
 		window.draw(scoreText);
 		window.draw(healthText);
 		for (auto& brick : standardBricks) {
@@ -151,28 +177,54 @@ int main()
 		for (auto& brick : velocityBoostBricks) {
 			window.draw(brick);
 		}
-		for (auto& brick : indestructibleBlocks) {
+		for (auto& brick : indestructibleBricks) {
 			window.draw(brick);
 		}
-		for (auto& brick : strongerHealthBlocks) {
+		for (auto& brick : strongerHealthBricks) {
 			window.draw(brick);
 		}
 		for (auto& brick : bonusBlocks) {
 			window.draw(brick);
 		}
+		for (auto& movingBrick : movingBricks) {
+			if (movingBrick.getAliveStatus()) {
+				window.draw(movingBrick);
+			}
+		}
 		for (auto& bonus : bonuses) {
-			if ((!bonus.getStatus())&&(bonus.getMovingStatus())) {
+			if ((!bonus.getStatus()) && (bonus.getMovingStatus())) {
 				bonus.update();
 			}
 			window.draw(bonus);
 		}
 		for (auto& bonus : bonuses) {
 			if (bonus.getStatus()) {
+				if (bonus.getBonusType() == bonusType::MOVINGBRICK) {
+					bonus.spawnMovingBrick(movingBricks);
+				}
+				if (bonus.getBonusType() == bonusType::ADDBALL) {
+					bonus.spawnBall(bl);
+				}
 				bonuses.erase(remove_if(begin(bonuses), end(bonuses), [](Bonus& bonus) {return bonus.getStatus(); }), end(bonuses));
 			}
 		}
+		for (auto& movingBrick : movingBricks) {
+			if (movingBrick.getAliveStatus()) {
+				movingBrick.update();
+			}
+		}
+		if (player.getScore() > 35) {
+			lossText.setString("YOU WIN");
+			lossText.setFillColor(sf::Color::Green);
+			for (auto& ball : bl) {
+				ball.setVelocity({ 0,0 });
+			}
+			window.draw(lossText);
+		}
 		if (player.getHealth() == 0) {
-			bl.setVelocity({ 0,0 });
+			for (auto& ball : bl) {
+				ball.setVelocity({ 0,0 });
+			}
 			window.draw(lossText);
 		}
 		window.display();

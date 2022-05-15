@@ -3,14 +3,18 @@
 #include <SFML/Graphics.hpp>
 #include <SFML/Window.hpp>
 #include <SFML/System.hpp>
-constexpr float ballRadius{ 5.f }, ballVelocity{ 5.f }, ballVelocityBoost{ 2.f };
+/*Constants*/
+constexpr float ballRadius{ 20.f }, ballVelocity{ 5.f }, ballVelocityBoost{ 2.f };
 constexpr int windowWidth{ 1280 }, windowHeight{ 1024 };
-constexpr float racketWidth{ 60.f }, racketHeight{ 20.f }, racketVelocity{ 15.f };
+constexpr float racketWidth{ 100.f }, racketHeight{ 20.f }, racketVelocity{ 15.f };
 constexpr float blockWidth{ 60.f }, blockHeight{ 20.f };
-constexpr int countStandardX{ 4 }, countStandardY{ 4 }, countIndestructibleBlocks{ 10 }, countVelocityBoostBlocks{ 10 }, countStrongBlocks{ 3 };
+constexpr int countStandardX{ 4 }, countStandardY{ 4 }, countIndestructibleBlocks{ 7 }, countVelocityBoostBlocks{ 2 }, countStrongBlocks{ 3 };
 constexpr float bonusVelocity{ 3.f };
+constexpr float brickVelocity{ 3.f };
+enum class bonusType { NONE, MOVINGBRICK, ADDBALL };
 class Player;
 class Bonus;
+class MovingBrick;
 class Ball :public sf::CircleShape {
 public:
 	Ball(float mX, float mY) {
@@ -32,6 +36,7 @@ public:
 	void setXVelocity(float xvelocity) { this->_velocity.x = xvelocity; }
 	void setYVelocity(float yvelocity) { this->_velocity.y = yvelocity; }
 private:
+	bool _additional = false;
 	sf::Vector2f _velocity{ -ballVelocity, -ballVelocity };
 };
 class Racket : public sf::RectangleShape {
@@ -93,6 +98,23 @@ private:
 	float _velocityBoost = 1.f;
 	int _health = 1;
 };
+
+class MovingBrick : public Brick {
+public:
+	MovingBrick(float mX, float mY) : Brick(mX, mY) {};
+	void update();
+	bool getAliveStatus() { return this->_isAlive; }
+	void setAliveStatus(bool status) { this->_isAlive = status; }
+
+	sf::Vector2f getVelocity() { return this->_velocity; }
+
+	void setVelocity(sf::Vector2f velocity) { this->_velocity = velocity; }
+	void setXVelocity(float xvelocity) { this->_velocity.x = xvelocity; }
+	void setYVelocity(float yvelocity) { this->_velocity.y = yvelocity; }
+private:
+	sf::Vector2f _velocity{ brickVelocity, 0 };
+	bool _isAlive = false;
+};
 class Player {
 public:
 	int getHealth() { return this->_health; }
@@ -108,7 +130,7 @@ private:
 	int _score = 0;
 };
 
-class Bonus : public sf::RectangleShape{
+class Bonus : public sf::RectangleShape {
 public:
 	Bonus(float mX, float mY) {
 		this->setPosition(mX, mY);
@@ -131,17 +153,24 @@ public:
 	void setMovingStatus(bool status) { this->_isMoving = status; }
 
 	bool getFailStatus() { return this->_isFailed; }
-	void setFailStatus(bool status) { this->_isFailed = true; }
+	void setFailStatus(bool status) { this->_isFailed = status; }
 	void setCoordinates(float mX, float mY) {
-		this->bonusCoordinates.x = mX;
-		this->bonusCoordinates.y = mY;
+		this->_bonusCoordinates.x = mX;
+		this->_bonusCoordinates.y = mY;
 	}
+
+	bonusType getBonusType() { return this->_bonus; }
+	void setBonusType(bonusType bonus) { this->_bonus = bonus; }
+	
+
+	void spawnMovingBrick(std::vector <MovingBrick>& movingBricks);
+	void spawnBall(std::vector<Ball>& balls);
 private:
-	sf::Vector2f bonusCoordinates{ 0,0 };
+	sf::Vector2f _bonusCoordinates{ 0,0 };
 	sf::Vector2f _velocity{ 0, bonusVelocity };
 	bool _isCaught = false;
 	bool _isMoving = false;
 	bool _isFailed = false;
-
+	bonusType _bonus = bonusType::NONE;
 };
 #endif
